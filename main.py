@@ -7,9 +7,13 @@ gdp = pd.read_excel('E:\Artigo\gdp.xls')
 internet = pd.read_excel('E:\Artigo\internet.xls')
 
 print('Tratando Dados')
+gdp.fillna(0)
+internet.fillna(0)
 
 print("Valores ausentes em gdp:")
 print(gdp.isnull().sum())
+
+#fazer uma verificação se em algum campo tem algum valor nulo
 
 print("Valores ausentes em internet:")
 print(internet.isnull().sum())
@@ -29,24 +33,6 @@ for indice, linha in merged_dataS.iterrows():
 print('---------------------------')
 
 merged_data = merged_data.dropna(subset=['DadosUtilizados_GDP', 'DadosUtilizados_Internet'])
+merged_dataS = merged_dataS.dropna(subset=['DadosUtilizados_GDP', 'DadosUtilizados_Internet'])
 
-print('---------------------------')
-print('CALCULOS')
-x = merged_data['DadosUtilizados_GDP']
-y = merged_data['DadosUtilizados_Internet']
-
-correlacao = x.corr(y)
-print(f"Correlação entre as colunas: {correlacao}")
-
-cInclinacao, cInterceptacao, cValorDeterminacao, p_value, std_err = linregress(x, y)
-print(f"Coeficiente de inclinação (slope): {cInclinacao}")
-print(f"Coeficiente de interceptação (intercept): {cInterceptacao}")
-print(f"Coeficiente de determinação (r-squared): {cValorDeterminacao ** 2}")
-
-plt.scatter(x, y, label='Dados')
-plt.plot(x, cInclinacao * x + cInterceptacao, color='red', label='Regressão Linear')
-plt.xlabel('DadosUtilizados_GDP')
-plt.ylabel('DadosUtilizados_Internet')
-plt.legend()
-plt.show()
-print('---------------------------')
+pd.DataFrame(merged_dataS).to_excel('E:\Artigo\merged_data.xlsx')
