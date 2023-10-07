@@ -3,22 +3,22 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 # Carregando os dados do GDP e da Internet
-gdp = pd.read_excel('E:\Artigo\gdp.xls')
-internet = pd.read_excel('E:\Artigo\internet.xls')
+gdp_per_capita = pd.read_excel('E:\Artigo\gdp.xls')
+individuos_usando_internet = pd.read_excel('E:\Artigo\internet.xls')
 
 # Preenchendo valores ausentes com 0
-gdp.fillna(0, inplace=True)
-internet.fillna(0, inplace=True)
+gdp_per_capita.fillna(0, inplace=True)
+individuos_usando_internet.fillna(0, inplace=True)
 
 # Verificando valores ausentes
 print("Valores ausentes em gdp:")
-print(gdp.isnull().sum())
+print(gdp_per_capita.isnull().sum())
 
 print("Valores ausentes em internet:")
-print(internet.isnull().sum())
+print(individuos_usando_internet.isnull().sum())
 
 # Mesclando os DataFrames
-merged_data = pd.merge(gdp[['Data Source', 'DadosUtilizados']], internet[['Data Source', 'DadosUtilizados']],
+merged_data = pd.merge(gdp_per_capita[['Data Source', 'DadosUtilizados']], individuos_usando_internet[['Data Source', 'DadosUtilizados']],
                        on='Data Source', how='inner')
 
 # Renomeando as colunas
@@ -51,8 +51,8 @@ plt.figure(figsize=(10, 6))
 plt.scatter(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
 plt.plot(merged_dataS['DadosUtilizados_GDP'], intercept + slope * merged_dataS['DadosUtilizados_GDP'], color='red', label='Linha de Regressão')
 plt.title('Gráfico de Dispersão com Regressão Linear')
-plt.xlabel('DadosUtilizados_GDP')
-plt.ylabel('DadosUtilizados_Internet')
+plt.xlabel('GDP per Capita')
+plt.ylabel('% de Indivíduos Usando Internet')
 plt.legend()
 plt.grid(True)
 
