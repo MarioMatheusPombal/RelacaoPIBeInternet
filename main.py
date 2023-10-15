@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from scipy.stats import pearsonr
 
 # Carregando os dados do GDP e da Internet
 gdp_per_capita = pd.read_excel('E:\Artigo\gdp.xls')
@@ -18,11 +19,13 @@ print("Valores ausentes em internet:")
 print(individuos_usando_internet.isnull().sum())
 
 # Mesclando os DataFrames
-merged_data = pd.merge(gdp_per_capita[['Data Source', 'DadosUtilizados']], individuos_usando_internet[['Data Source', 'DadosUtilizados']],
+merged_data = pd.merge(gdp_per_capita[['Data Source', 'DadosUtilizados']],
+                       individuos_usando_internet[['Data Source', 'DadosUtilizados']],
                        on='Data Source', how='inner')
 
 # Renomeando as colunas
-merged_data.rename(columns={'DadosUtilizados_x': 'DadosUtilizados_GDP', 'DadosUtilizados_y': 'DadosUtilizados_Internet'}, inplace=True)
+merged_data.rename(
+    columns={'DadosUtilizados_x': 'DadosUtilizados_GDP', 'DadosUtilizados_y': 'DadosUtilizados_Internet'}, inplace=True)
 
 # Ordenando os dados
 merged_dataS = merged_data.sort_values(by=['DadosUtilizados_GDP', 'DadosUtilizados_Internet'])
@@ -36,25 +39,32 @@ merged_dataS = merged_dataS[merged_dataS['DadosUtilizados_Internet'] <= 100]
 # Salvar a tabela filtrada em um novo arquivo Excel (opcional)
 merged_dataS.to_excel('E:\Artigo\merged_data_filtered.xlsx', index=False)
 
-# Calculando a regressão linear
-slope, intercept, r_value, p_value, std_err = linregress(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
+# Calculando o coeficiente de Pearson
+correlation, _ = pearsonr(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
+print('Coeficiente de Pearson: %.3f' % correlation)
 
-# Exibindo o coeficiente de Pearson e os parâmetros da regressão
-print(f'Coeficiente de Pearson: {r_value:.2f}')
-print(f'Regressão Linear: Y = {slope:.2f}X + {intercept:.2f}')
-print(f'R-squared: {r_value**2:.2f}')
-print(f'Valor p: {p_value:.4f}')
-print(f'Erro padrão: {std_err:.2f}')
+# Realizando a regressão linear
+slope, intercept, r_value, p_value, std_err = linregress(merged_dataS['DadosUtilizados_GDP'],
+                                                         merged_dataS['DadosUtilizados_Internet'])
+
+# Lista dos países de primeiro mundo e Brasil
+countries_to_label = ['Brazil', 'United States', 'United Kingdom', 'French', 'Canada', 'Japan', 'Spsain',
+                      'Norway', 'Italy', 'Cayman Islands', 'Luxembourg', 'Liechtenstein', 'Ireland', 'Monaco']
 
 # Plotando o gráfico de dispersão e a linha de regressão
-plt.figure(figsize=(10, 6))
-plt.scatter(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
-plt.plot(merged_dataS['DadosUtilizados_GDP'], intercept + slope * merged_dataS['DadosUtilizados_GDP'], color='red', label='Linha de Regressão')
-plt.title('Gráfico de Dispersão com Regressão Linear')
-plt.xlabel('GDP per Capita')
-plt.ylabel('% de Indivíduos Usando Internet')
-plt.legend()
-plt.grid(True)
+plt.figure(figsize=(10, 5))
+plt.scatter(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'], label='Dados originais')
+plt.plot(merged_dataS['DadosUtilizados_GDP'], intercept + slope * merged_dataS['DadosUtilizados_GDP'], 'r',
+         label='Linha de regressão')
 
-# Mostrando o gráfico
+# Adicionando os nomes dos países selecionados
+for i, country in enumerate(merged_dataS['Data Source']):
+    if country in countries_to_label:
+        plt.annotate(country,
+                     (merged_dataS['DadosUtilizados_GDP'].iloc[i], merged_dataS['DadosUtilizados_Internet'].iloc[i]))
+
+plt.xlabel('PIB per capita')
+plt.ylabel('Usuários de Internet (%)')
+plt.title('PIB per capita vs. Usuários de Internet (%)')
+plt.legend()
 plt.show()
