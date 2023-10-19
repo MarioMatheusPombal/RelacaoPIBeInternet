@@ -11,13 +11,6 @@ individuos_usando_internet = pd.read_excel('E:\Artigo\internet.xls')
 gdp_per_capita.fillna(0, inplace=True)
 individuos_usando_internet.fillna(0, inplace=True)
 
-# Verificando valores ausentes
-print("Valores ausentes em gdp:")
-print(gdp_per_capita.isnull().sum())
-
-print("Valores ausentes em internet:")
-print(individuos_usando_internet.isnull().sum())
-
 # Mesclando os DataFrames
 merged_data = pd.merge(gdp_per_capita[['Data Source', 'DadosUtilizados']],
                        individuos_usando_internet[['Data Source', 'DadosUtilizados']],
@@ -55,10 +48,6 @@ merged_dataS['DadosUtilizados_Internet_Normalizado'] = merged_dataS['DadosUtiliz
 
 merged_dataS.to_excel('E:\Artigo\merged_data_normalized.xlsx', index=False)
 
-# Calculando o coeficiente de Pearson
-correlation, _ = pearsonr(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
-print('Coeficiente de Pearson: %.3f' % correlation)
-
 # Realizando a regressão linear
 slope, intercept, r_value, p_value, std_err = linregress(merged_dataS['DadosUtilizados_GDP'],
                                                          merged_dataS['DadosUtilizados_Internet'])
@@ -95,6 +84,22 @@ for i, country in enumerate(merged_dataS['Data Source']):
         plt.annotate(country,
                      (merged_dataS['DadosUtilizados_GDP_Normalizado'].iloc[i],
                       merged_dataS['DadosUtilizados_Internet'].iloc[i]))
+
+# Calculando o coeficiente de Pearson
+correlation, _ = pearsonr(filtered_data['DadosUtilizados_GDP_Normalizado'], filtered_data['DadosUtilizados_Internet'])
+print('Coeficiente de Pearson: %.3f' % correlation)
+
+# Realizando a regressão linear
+slope, intercept, r_value, p_value, std_err = linregress(filtered_data['DadosUtilizados_GDP_Normalizado'],
+                                                         filtered_data['DadosUtilizados_Internet'])
+
+# Imprimindo os resultados da regressão linear
+print('Regressão Linear:')
+print('Inclinação (slope):', slope)
+print('Interceptação (intercept):', intercept)
+print('Coeficiente de determinação (r-squared):', r_value**2)
+print('Valor p:', p_value)
+print('Erro padrão:', std_err)
 
 plt.xlabel('PIB per capita Normalizado (0-100)')
 plt.ylabel('Usuários de Internet (%)')
