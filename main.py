@@ -1,5 +1,5 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.stats import linregress
 from scipy.stats import pearsonr
 
@@ -30,14 +30,30 @@ merged_data.rename(
 # Ordenando os dados
 merged_dataS = merged_data.sort_values(by=['DadosUtilizados_GDP', 'DadosUtilizados_Internet'])
 
-# Salvando os dados mesclados em um arquivo Excel
-merged_dataS.to_excel('E:\Artigo\merged_data.xlsx', index=False)
-
 # Filtrar os dados em 'DadosUtilizados_Internet' que são menores ou iguais a 100
 merged_dataS = merged_dataS[merged_dataS['DadosUtilizados_Internet'] <= 100]
 
+# Salvando os dados mesclados em um arquivo Excel
+merged_dataS.to_excel('E:\Artigo\merged_data.xlsx', index=False)
+
 # Salvar a tabela filtrada em um novo arquivo Excel (opcional)
 merged_dataS.to_excel('E:\Artigo\merged_data_filtered.xlsx', index=False)
+
+# Normalização linear para o intervalo de 0 a 100
+min_value = merged_dataS['DadosUtilizados_GDP'].min()
+max_value = merged_dataS['DadosUtilizados_GDP'].max()
+merged_dataS['DadosUtilizados_GDP_Normalizado'] = ((merged_dataS['DadosUtilizados_GDP'] - min_value) / (
+        max_value - min_value)) * 100
+min_value = merged_dataS['DadosUtilizados_Internet'].min()
+max_value = merged_dataS['DadosUtilizados_Internet'].max()
+merged_dataS['DadosUtilizados_Internet_Normalizado'] = ((merged_dataS['DadosUtilizados_Internet'] - min_value) / (
+        max_value - min_value)) * 100
+
+# Arredondar para dígitos após o ponto decimal
+merged_dataS['DadosUtilizados_GDP_Normalizado'] = merged_dataS['DadosUtilizados_GDP_Normalizado'].round(2)
+merged_dataS['DadosUtilizados_Internet_Normalizado'] = merged_dataS['DadosUtilizados_Internet_Normalizado'].round(2)
+
+merged_dataS.to_excel('E:\Artigo\merged_data_normalized.xlsx', index=False)
 
 # Calculando o coeficiente de Pearson
 correlation, _ = pearsonr(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'])
@@ -48,23 +64,40 @@ slope, intercept, r_value, p_value, std_err = linregress(merged_dataS['DadosUtil
                                                          merged_dataS['DadosUtilizados_Internet'])
 
 # Lista dos países de primeiro mundo e Brasil
-countries_to_label = ['Brazil', 'United States', 'United Kingdom', 'French', 'Canada', 'Japan', 'Spsain',
-                      'Norway', 'Italy', 'Cayman Islands', 'Luxembourg', 'Liechtenstein', 'Ireland', 'Monaco']
+countries_to_label = ['Brazil', 'United States', 'French', 'Canada', 'Japan', 'Spsain',
+                      'Norway', 'Italy', 'Luxembourg', 'Liechtenstein', 'Ireland', 'Monaco',
+                      'India', 'Bangladesh', 'Uganda', 'Nigeria', 'Kenya', 'Ghana', 'Zimbabwe',
+                      'Egypt', 'Korea, Rep.', 'North Korea', 'China', 'Russia']
 
 # Plotando o gráfico de dispersão e a linha de regressão
 plt.figure(figsize=(10, 5))
-plt.scatter(merged_dataS['DadosUtilizados_GDP'], merged_dataS['DadosUtilizados_Internet'], label='Dados originais')
-plt.plot(merged_dataS['DadosUtilizados_GDP'], intercept + slope * merged_dataS['DadosUtilizados_GDP'], 'r',
+
+# Filtrando apenas os países com dados diferentes de zero em ambas as tabelas
+filtered_data = merged_dataS[(merged_dataS['DadosUtilizados_GDP_Normalizado'] > 0) &
+                             (merged_dataS['DadosUtilizados_Internet'] > 0)]
+
+plt.scatter(filtered_data['DadosUtilizados_GDP_Normalizado'], filtered_data['DadosUtilizados_Internet'],
+            label='Dados originais')
+plt.plot(filtered_data['DadosUtilizados_GDP_Normalizado'], intercept + slope * filtered_data['DadosUtilizados_GDP'],
+         'r',
          label='Linha de regressão')
 
 # Adicionando os nomes dos países selecionados
 for i, country in enumerate(merged_dataS['Data Source']):
     if country in countries_to_label:
         plt.annotate(country,
-                     (merged_dataS['DadosUtilizados_GDP'].iloc[i], merged_dataS['DadosUtilizados_Internet'].iloc[i]))
+                     (merged_dataS['DadosUtilizados_GDP_Normalizado'].iloc[i],
+                      merged_dataS['DadosUtilizados_Internet'].iloc[i]))
 
-plt.xlabel('PIB per capita')
+# Adicionando os nomes dos países com menos de 40% de acesso à internet
+for i, country in enumerate(merged_dataS['Data Source']):
+    if country in countries_to_label and merged_dataS['DadosUtilizados_Internet'].iloc[i] < 40:
+        plt.annotate(country,
+                     (merged_dataS['DadosUtilizados_GDP_Normalizado'].iloc[i],
+                      merged_dataS['DadosUtilizados_Internet'].iloc[i]))
+
+plt.xlabel('PIB per capita Normalizado (0-100)')
 plt.ylabel('Usuários de Internet (%)')
-plt.title('PIB per capita vs. Usuários de Internet (%)')
+plt.title('PIB per capita Normalizado vs. Usuários de Internet (%)')
 plt.legend()
 plt.show()
