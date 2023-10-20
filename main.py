@@ -85,6 +85,9 @@ for i, country in enumerate(merged_dataS['Data Source']):
                      (merged_dataS['DadosUtilizados_GDP_Normalizado'].iloc[i],
                       merged_dataS['DadosUtilizados_Internet'].iloc[i]))
 
+# Limitando o eixo Y para variar de 0 a 100
+plt.ylim(0, 110)
+
 # Calculando o coeficiente de Pearson
 correlation, _ = pearsonr(filtered_data['DadosUtilizados_GDP_Normalizado'], filtered_data['DadosUtilizados_Internet'])
 print('Coeficiente de Pearson: %.3f' % correlation)
@@ -94,7 +97,7 @@ slope, intercept, r_value, p_value, std_err = linregress(filtered_data['DadosUti
                                                          filtered_data['DadosUtilizados_Internet'])
 
 # Imprimindo os resultados da regressão linear
-print('Regressão Linear:')
+print('Regressão Linear:', 'y =', slope.round(2), 'x +', intercept.round(2))
 print('Inclinação (slope):', slope)
 print('Interceptação (intercept):', intercept)
 print('Coeficiente de determinação (r-squared):', r_value**2)
